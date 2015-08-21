@@ -1,0 +1,97 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+        var socket = io.connect('http://52.11.98.82:3000/Chat');
+    //alert(document.location.href);
+//    var socket = io.connect('http://localhost:3000/Chat');
+    var status="loggedin";
+    socket.username = 'B';
+    var to_user='alirajab';
+    // var socket = io.connect('/socket');
+
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+//        socket.emit('637824466345948', '637824466345948');
+        //socket.emit('test', 'ALI');
+        //socket.id='alirajab';
+        //alert(socket.id);
+
+
+        socket.emit('chat',socket.username,to_user,status);
+
+    });
+    socket.on('getChatLog', function(json){
+        jsonObj = eval('('+json+')');
+        alert(json);
+        var roomname=jsonObj.RoomName;
+        if(status=='loggedin' || status=='chat'){
+            socket.emit('startRoom',roomname);
+        }
+    });
+
+    // listener, whenever the server emits 'updatechat', this updates the chat body
+    socket.on('updatechat', function (username, data) {
+        alert(username+" "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+
+    // listener, whenever the server emits 'updaterooms', this updates the room the client is in
+    socket.on('updaterooms', function(rooms, current_room) {
+        $('#rooms').empty();
+        $('#rooms').append('<div>' + current_room + '</div>');
+//        $.each(rooms, function(key, value) {
+//            if(value == current_room){
+//                $('#rooms').append('<div>' + value + '</div>');
+//            }
+//            else {
+//                $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+//            }
+//        });
+    });
+
+    function switchRoom(room){
+        socket.emit('switchRoom', room);
+    }
+
+    // on load of page
+    $(function(){
+        // when the client clicks SEND
+        $('#datasend').click( function() {
+            var message = $('#data').val();
+            $('#data').val('');
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+        });
+
+        // when the client hits ENTER on their keyboard
+        $('#data').keypress(function(e) {
+            if(e.which == 13) {
+                $(this).blur();
+                $('#datasend').focus().click();
+            }
+        });
+        $('#loggedout').click(function(e){
+            alert("logging out...");
+            socket.emit('loggedout');
+        });
+        $('#skip').click(function(e){
+            alert("Skip Game...");
+            socket.emit('skip');
+        });
+    });
+
+</script>
+<h1> Ali Rajab...</h1> <p/>
+
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <b>ROOMS</b>
+    <div id="rooms"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+    <div id="conversation"></div>
+    <input id="data" style="width:200px;" />
+    <input type="button" id="datasend" value="send" />
+</div>
+<input type="button" id="loggedout" value="sign out" />
+<input type="button" id="skip" value="skip" />
