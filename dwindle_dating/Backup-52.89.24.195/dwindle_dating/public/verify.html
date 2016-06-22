@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; margin-bottom: 31px; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+     <form action="">
+      <input id="user"  value="User Detail -> " readonly="true" type="hidden"/>
+      <input id="m" autocomplete="off" value="0" /> <!-- http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page=0 -->
+      <!-- readonly="true" <button>Play</button> -->
+    </form>
+
+    <ul id="messages"></ul>
+    <br />
+    <a id="forcePlay"><button>Force Play</button> </a> <!--href="http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page=0"  --> 
+    <br /><br /><br />
+    <ul id="offline_users"></ul>
+   
+
+   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+
+   $( document ).ready(function() {
+      
+       $('#forcePlay').hide();
+    });
+
+    var socket = io();
+    $('form').submit(function(){
+      //alert('Send');
+      socket.emit('chat message', $('#m').val(), $('#user').val());
+      //$('#m').val('');
+      return false;
+    });
+
+    //Catch Socket events - 12 sep 2015
+    socket.on('message_not_found', function(msg){//,user
+      alert('Sorry, there is no user matches your preferences.');
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+    socket.on('message_no_online_user', function(msg){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+    //
+    socket.on('message_user_loggedOff', function(msg){
+      $('#messages').append($('<li>').text(msg));
+    });
+
+    //
+    socket.on('message_user_isPlaying', function(msg){
+      $('#messages').append($('<li>').text(msg)); 
+    });
+
+    //Replace 'localhost:3000' with 'http://52.89.24.195:3000/' before deploymnet on production
+    socket.on('message_push_notification_send', function(msg,users_count, offline_users_list, from_user){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+      var url = 'http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page='+users_count;
+      //$('#forcePlay').attr('href',url);
+      $('#forcePlay').show();
+      $('#m').val(users_count);//url
+
+      var offlineUser;
+      var anchor;
+      var html;
+      $('#offline_users').append($('<li>').text("Push notification has send to following users: "));
+      for(var i=0; i < offline_users_list.length; i++)
+      {
+          offlineUser = offline_users_list[i];
+          anchor = "   <a href='http://localhost:3000/Play?respond_to="+from_user+"&respond_by="+offlineUser+"&respond_by_lat="+31.484+"&respond_by_long="+74.389+"'>Respond</a>";
+          //alert(currentDateTime);
+          html = offlineUser + anchor;
+          $('#offline_users').append($('<li>').append(html));
+      }
+    });
+
+    $('#forcePlay').click(function(){ 
+      //var url = $('#m').val();
+      //window.open(url) 
+      socket.emit('force play', $('#m').val());
+    });
+    
+    
+    
+  </script>
+
+  </body>
+</html>

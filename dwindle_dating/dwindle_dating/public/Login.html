@@ -1,0 +1,95 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+    //var socket = io.connect('http://159.203.245.103:3000/Chat');// TODO uncomment thsi line before commiting code
+    //alert(document.location.href);
+    //var socket = io.connect('http://localhost:3000/Chat'); // TODO comment thsi line before commiting code
+    var socket = io.connect('http://localhost:3000/');//TODO comment this line
+
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+//        socket.emit('637824466345948', '637824466345948');
+		//socket.emit('test', 'ALI');
+        //socket.id='alirajab';
+        //alert(socket.id);
+
+        console.log('Socket connected with login'); //TODO
+        //socket.emit('chat',socket.username,to_user,status);
+              
+    });
+	
+    socket.on('event_loggedIn', function(json){
+        jsonObj = eval('('+json+')');
+        alert(json);
+
+
+    });
+
+    socket.on('event_user_not_registered', function(json){
+        jsonObj = eval('('+json+')');
+        alert(json);
+
+
+    });
+	
+
+   
+
+    //Start - anas
+    
+    socket.on('message_from_play_screen', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+      
+    });
+
+    socket.on('message_game_started', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+    });
+    
+
+     
+    socket.on('message_from_matches_screen', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+
+      ///* Use case 7 - TODO - need to implement
+      if(confirm("Do you want to see MAtches screen messages ?"))
+        {
+            //console.log('ok called');
+            //socket.emit('setInAppPushNotificationFlag',from_user);
+            //socket.inAppPushNotification = true;
+            //socket.respondTo = from_user;
+            var url = 'http://localhost:3000/chatlog1.html';
+            window.location.href = url;
+            //window.open(url); 
+        }
+        else
+        {
+            //Cancel button pressed...
+            console.log('cancelled called');
+            alert('cancelled called');
+        }
+    });
+    //End
+
+    // on load of page
+    $(function(){
+        // when the client clicks SEND
+        $('#login').click( function() {
+            var fb_id = $('#user_fb_id').val();
+            socket.emit('login', fb_id);
+        });
+
+    });
+
+</script>
+<h1> Login Form </h1> <p/>
+
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <!--<p><a href="http://localhost:3000/Menu.html">Go to Main Menu</a></p>-->
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+    <div id="conversation"></div>
+    <input id="user_fb_id" style="width:200px;" />
+    <input type="button" id="login" value="Login" />
+</div>

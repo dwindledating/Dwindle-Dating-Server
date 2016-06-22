@@ -1,0 +1,137 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+        var socket = io.connect('http://159.203.245.103:3000');
+    //var socket = io.connect('http://localhost:3000/');
+    // var socket = io.connect('/socket');
+
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+//        socket.emit('637824466345948', '637824466345948');
+        //socket.emit('test', 'ALI');
+        //socket.id='alirajab';
+        //alert(socket.id);
+        socket.username = '1393159614344127';
+        socket.emit('Play',socket.username,'-87.94720009491111','42.1649183080623');
+
+    });
+    socket.on('startgame', function(json){
+        alert(json);
+        jsonObj = eval('('+json+')');
+//        alert(json);
+        //socket.username = 'alirajab';
+//        var status= jsonObj.Status;
+
+//        alert(status);
+//        if(status==='Wait'){
+//            alert('Wait Finding User To Chat');
+//        }
+//        else{
+        var mainusername = jsonObj.MainUser.fb_id;
+        var username = jsonObj.SecondUser.fb_id;
+        var roomname=jsonObj.RoomName;
+        alert("socket:"+socket.username+", mainuser:"+mainusername+", RoomName:"+roomname);
+        socket.emit('addUser',roomname);
+//        }
+
+//        socket.emit('addUser',username,mainusername);
+    });
+	 socket.on('skipchat', function (username, data) {
+            //alert(username+" "+data);
+			$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+    // listener, whenever the server emits 'updatechat', this updates the chat body
+    socket.on('updatechat', function (username, data) {
+       // alert(username+" D: "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+	socket.on('loggedoutResponse', function (username, data) {
+       // alert(username+" D: "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    }); 
+	socket.on('disconnectResponse', function (username, data) {
+       // alert(username+" D: "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    }); 
+    // listener, whenever the server emits 'deleted User name', this fade the one user
+    socket.on('deleteuser',function(deletedUserData){
+        alert("Deleted User Name: "+deletedUserData);
+    });
+    // listener, whenever the server emits 'adduserspic', this will add pic of each user
+    socket.on('adduserspic',function(userPicData){
+        alert("New PicInfo: "+userPicData);
+    });
+    //listener when dwindle down
+    socket.on('dwindledown',function(userList){
+        alert("Dwindle Down: "+userList);
+    });
+    // listener, whenever the server emits 'updaterooms', this updates the room the client is in
+    socket.on('updaterooms', function(rooms, current_room) {
+        $('#rooms').empty();
+        $('#rooms').append('<div>' + current_room + '</div>');
+//        $.each(rooms, function(key, value) {
+//            if(value == current_room){
+//                $('#rooms').append('<div>' + value + '</div>');
+//            }
+//            else {
+//                $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+//            }
+//        });
+    });
+
+    // 8 Oct 2015
+    socket.on('message_from_matches_screen', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+    });
+    //End
+
+    function switchRoom(room){
+        socket.emit('switchRoom', room);
+    }
+
+    // on load of page
+    $(function(){
+        // when the client clicks SEND
+        $('#datasend').click( function() {
+            var message = $('#data').val();
+            $('#data').val('');
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+        });
+
+        // when the client hits ENTER on their keyboard
+        $('#data').keypress(function(e) {
+            if(e.which == 13) {
+                $(this).blur();
+                $('#datasend').focus().click();
+            }
+        });
+        $('#loggedout').click(function(e){
+            alert("logging out...");
+            socket.emit('loggedout');
+        });
+		$('#skip').click(function(e){
+            alert("Skip Game...");
+            socket.emit('skip');
+        });
+		$('#resetPlay').click(function(e){
+            alert("Restart Game Play...");
+            socket.emit('restartGamePlay');
+        });
+    });
+
+</script>
+        <h1>Lisa Jennings..</h1><p/> 
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <b>ROOMS</b>
+    <div id="rooms"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+    <div id="conversation"></div>
+    <input id="data" style="width:200px;" />
+    <input type="button" id="datasend" value="send" />
+</div>
+<input type="button" id="loggedout" value="sign out" />
+<input type="button" id="skip" value="skip" />
+<input type="button" id="resetPlay" value="Restart Play" />

@@ -1,0 +1,127 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+    //var socket = io.connect('http://52.89.24.195:3000/Chat');// TODO uncomment thsi line before commiting code
+    //alert(document.location.href);
+    //var socket = io.connect('http://localhost:3000/Chat'); // TODO comment thsi line before commiting code
+    var socket = io.connect('http://localhost:3000/');//TODO comment this line
+    var status="loggedin";
+    //socket.username = '696284960499030';
+    //var to_user='637824466345948';
+	socket.username = '637824466345948';
+	var to_user='696284960499030';
+    //var to_user='10153221085360955';
+	
+    // var socket = io.connect('/socket');
+
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+//        socket.emit('637824466345948', '637824466345948');
+		//socket.emit('test', 'ALI');
+        //socket.id='alirajab';
+        //alert(socket.id);
+
+        console.log('connected with chat log'); //TODO
+        socket.emit('chat',socket.username,to_user,status);
+              
+    });
+	
+    socket.on('getChatLog', function(json){
+        jsonObj = eval('('+json+')');
+        alert(json);
+
+
+    });
+	socket.on('getChatLogForPageResult', function(json){
+        jsonObj = eval('('+json+')');
+        alert(json);
+
+
+    });
+
+    // listener, whenever the server emits 'updatechat', this updates the chat body
+    // TODO - 'updatechat' updated with 'updatechat_chatlog' - anas - 10 oct 2015
+    socket.on('updatechat_chatlog', function (username, data) {
+        alert(username+" "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+
+    // listener, whenever the server emits 'updaterooms', this updates the room the client is in
+    // TODO - 'updaterooms' updated with 'updaterooms_chatlog' - anas - 10 oct 2015
+    socket.on('updaterooms_chatlog', function(rooms, current_room) {
+        $('#rooms').empty();
+        $('#rooms').append('<div>' + current_room + '</div>');
+//        $.each(rooms, function(key, value) {
+//            if(value == current_room){
+//                $('#rooms').append('<div>' + value + '</div>');
+//            }
+//            else {
+//                $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+//            }
+//        });
+    });
+
+    //Start - anas
+    socket.on('message_from_play_screen', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+      
+    });
+
+    
+    socket.on('message_game_started', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+    });
+    //End
+
+    function switchRoom(room){
+        socket.emit('switchRoom', room);
+    }
+
+    // on load of page
+    $(function(){
+        // when the client clicks SEND
+        $('#datasend').click( function() {
+            var message = $('#data').val();
+            $('#data').val('');
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat_chatlog', message); // TODO - 'sendchat' updated with 'sendchat_chatlog' - anas - 10 oct 2015
+        });
+
+        // when the client hits ENTER on their keyboard
+        $('#data').keypress(function(e) {
+            if(e.which == 13) {
+                $(this).blur();
+                $('#datasend').focus().click();
+            }
+        });
+        $('#loggedout').click(function(e){
+            alert("logging out...");
+            socket.emit('loggedout');
+        });
+		$('#page').click(function(e){
+            alert("Next Pag Chat...");
+            var pageNo=2;
+            socket.emit('getChatLogForPage',socket.username,to_user,pageNo);
+        });
+        $('#skip').click(function(e){
+            alert("Skip Game...");
+            socket.emit('skip');
+        });
+    });
+
+</script>
+<h1> From User: 637824466345948  To User:696284960499030</h1> <p/>
+
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <b>ROOMS</b>
+    <div id="rooms"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+    <div id="conversation"></div>
+    <input id="data" style="width:200px;" />
+    <input type="button" id="datasend" value="send" />
+</div>
+<input type="button" id="loggedout" value="sign out" />
+<input type="button" id="page" value="Get Next Page Record" />
+<input type="button" id="skip" value="skip" />
