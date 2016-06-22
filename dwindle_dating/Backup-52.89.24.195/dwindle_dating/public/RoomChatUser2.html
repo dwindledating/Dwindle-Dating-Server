@@ -1,0 +1,421 @@
+<script src="/socket.io/socket.io.js"></script>
+<!-- TODO Start  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>-->
+  <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+<!-- End -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<!--TODO anas --><script src="http://code.jquery.com/jquery-1.11.1.js"></script> 
+<script>
+    var socket = io.connect('http://52.89.24.195:3000');
+    //alert(document.location.href);
+    //var socket = io.connect('http://localhost:3000/');
+    //var socket = io.connect('http://192.168.43.181:3000'); //TODO 17 Oct 2015
+    // var socket = io.connect('/socket');
+    //var socket = io(); // TODO
+    
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+//        socket.emit('637824466345948', '637824466345948');
+        //socket.emit('test', 'ALI');
+        //socket.id='alirajab';
+        //alert(socket.id);
+
+        // TODO anas - Test Updated Link : http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page=0
+    
+        //socket.username = '1395888427404363';//'1404004156590579';//
+        //socket.username = 'alirajab';
+        console.log('connected'); //TODO
+        //socket.emit('Play',socket.username,'31.484','74.389','0');
+        //socket.emit('Play',socket.username,'-87.94683012982527','42.16490188005869','0');
+
+        // 3 Oct 2015 - get users list for drop down list
+        socket.emit('getUsersList');
+
+              
+    });
+    socket.on('startgame', function(json){
+//        alert(json)
+        jsonObj = eval('('+json+')');
+        //alert(json);
+        //socket.username = 'alirajab';
+//        var status= jsonObj.Status;
+
+//        alert(status);
+//        if(status==='Wait'){
+//            alert('Wait Finding User To Chat');
+//        }
+//        else{
+            var mainusername = jsonObj.MainUser.fb_id;
+            var username = jsonObj.SecondUser.fb_id;
+            var roomname=jsonObj.RoomName;
+            //alert("socket:"+socket.username+", mainuser:"+mainusername+", RoomName:"+roomname);
+            socket.emit('addUser',roomname,mainusername);// TODO - mainusername added - anas - 11 Oct 2015
+//        }
+
+//        socket.emit('addUser',username,mainusername);
+    });
+
+    // listener, whenever the server emits 'updatechat', this updates the chat body
+    socket.on('updatechat', function (username, data) {
+        //alert(username+" "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+    socket.on('loggedoutResponse', function (username, data) {
+       // alert(username+" D: "+data);
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    }); 
+    // listener, whenever the server emits 'deleted User name', this fade the one user
+    socket.on('deleteuser',function(deletedUserData){
+        alert("Deleted User Name: "+deletedUserData);
+    });
+    // listener, whenever the server emits 'adduserspic', this will add pic of each user
+    socket.on('adduserspic',function(userPicData){
+        alert("New PicInfo: "+userPicData);
+    });
+    //listener when dwindle down
+    socket.on('dwindledown',function(userList){
+        alert("Dwindle Down: "+userList);
+    });
+     socket.on('skipchat', function (username, data) {
+            //alert(username+" "+data);
+            $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+    });
+    // listener, whenever the server emits 'updaterooms', this updates the room the client is in
+    socket.on('updaterooms', function(rooms, current_room) {
+        $('#rooms').empty();
+        $('#rooms').append('<div>' + current_room + '</div>');
+//        $.each(rooms, function(key, value) {
+//            if(value == current_room){
+//                $('#rooms').append('<div>' + value + '</div>');
+//            }
+//            else {
+//                $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+//            }
+//        });
+    });
+
+    //Start - Catch Socket events - 12 sep 2015 -  Anas
+    socket.on('message_not_found', function(msg){//,user
+      //alert('Sorry, there is no user matches your preferences.');
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+    socket.on('message_no_online_user', function(msg){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+    //
+    socket.on('message_user_loggedOff', function(msg){
+      $('#messages').append($('<li>').text(msg));
+    });
+
+    //
+    socket.on('message_user_isPlaying', function(msg){
+      $('#messages').append($('<li>').text(msg)); 
+    });
+    
+    socket.on('message_online_user', function(msg){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+    
+    socket.on('message_push_notification_Error', function(msg){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+     socket.on('message_user_isBusy', function(msg){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+    });
+
+     socket.on('message_user_found', function(user){//,user
+      $('#messages').append($('<li>').text('This "'+user+'" found to play game.'));//user +
+      $('#chatDiv').show(); 
+     });
+
+     // Login start - 17 Oct 2015
+     socket.on('event_user_loggedIn_temp', function (json) {
+         jsonObj = eval('(' + json + ')');
+         alert(json);
+
+
+     });
+
+     socket.on('event_user_not_registered', function (json) {
+         jsonObj = eval('(' + json + ')');
+         alert(json);
+
+
+     });
+
+    //Replace 'localhost:3000' with 'http://52.89.24.195:3000/' before deploymnet on production
+    socket.on('message_push_notification_send', function(msg,user_name,user_Lat,user_Lon,users_count, offline_users_list, from_user){//,user
+      $('#messages').append($('<li>').text(msg));//user + 
+      var url = 'http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page='+users_count;
+      //$('#forcePlay').attr('href',url);
+      $('#forcePlay').show();
+      
+      $('#userId').val(user_name);
+      $('#userLat').val(user_Lat);
+      $('#userLon').val(user_Lon);
+      $('#pageCount').val(users_count);//url
+
+      var respondBy = $('#selectUserlistAPNS');
+      var respondTo = $('#respondToAPNS');
+      var userLat = $('#userLatAPNS');
+      var userLon = $('#userLonAPNS');
+
+      var offlineUser;
+      var anchor;
+      var html;
+      var innerhtml;
+      $('#offline_users').append($('<li>').text("Push notification has send to following users: "));
+      for(var i=0; i < offline_users_list.length; i++)
+      {
+          offlineUser = offline_users_list[i];
+          //anchor = "   <a href='http://localhost:3000/Play?respond_to="+from_user+"&respond_by="+offlineUser+"&respond_by_lat="+31.484+"&respond_by_long="+74.389+"'>Respond</a>";
+
+          //alert(currentDateTime);
+          innerhtml ="<p>Send from : "+from_user+" &nbsp;&nbsp;&nbsp; Send to : "+offlineUser+"</p>"
+          html = innerhtml;//offlineUser + anchor;
+          $('#offline_users').append($('<li>').append(html));
+          respondBy.append('<option value="'+offlineUser+'">'+offlineUser+'</option>');
+      }
+      respondTo.val(from_user);
+
+      respondBy.show();
+      respondTo.show();
+      userLat.show();
+      userLon.show();
+      $('#apnsResponse').show();
+      
+
+    });
+
+    
+    socket.on('setUserDropDownList', function(userlist){
+      
+      var userId ;
+      for(var i=0; i < userlist.length; i++)
+      {
+        userId = userlist[i];
+        $('#selectUserlist').append('<option value="'+userId+'">'+userId+'</option>');
+      }
+    });
+
+    // 8 Oct 2015
+    socket.on('message_from_matches_screen', function(msg,from_user,fromScreen){
+      alert(from_user+' : '+msg+'   From Screen : '+ fromScreen);
+
+      ///* Use case 7 - TODO - need to implement
+      if(confirm("Do you want to see MAtches screen messages ?"))
+        {
+            //console.log('ok called');
+            //socket.emit('setInAppPushNotificationFlag',from_user);
+            //socket.inAppPushNotification = true;
+            //socket.respondTo = from_user;
+            var url = 'http://localhost:3000/chatlog1.html';
+            window.location.href = url;
+            //window.open(url); 
+        }
+        else
+        {
+            //Cancel button pressed...
+            console.log('cancelled called');
+            alert('cancelled called');
+        }
+    });
+    //End
+
+    function switchRoom(room){
+        socket.emit('switchRoom', room);
+    }
+
+    // on load of page
+    $(function(){
+        // when the client clicks SEND
+        $('#datasend').click( function() {
+            var message = $('#data').val();
+            $('#data').val('');
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+        });
+
+        // when the client hits ENTER on their keyboard
+        $('#data').keypress(function(e) {
+            if(e.which == 13) {
+                $(this).blur();
+                $('#datasend').focus().click();
+            }
+        });
+        $('#loggedout').click(function(e){
+            alert("logging out...");
+            socket.emit('loggedout');
+        });
+        $('#skip').click(function(e){
+            alert("Skip Game...");
+            socket.emit('skip');
+        });
+    });
+
+    // TODO start - anas
+    $( document ).ready(function() {
+      
+       $('#forcePlay').hide();
+        var respondBy = $('#selectUserlistAPNS');
+        var respondTo = $('#respondToAPNS');
+        var userLat = $('#userLatAPNS');
+        var userLon = $('#userLonAPNS');
+        respondBy.hide();
+        respondTo.hide();
+        userLat.hide();
+        userLon.hide();
+        $('#apnsResponse').hide();
+        $('#chatDiv').hide();
+
+       $('#forcePlay').click(function(){ 
+        //var url = $('#m').val();
+        //window.open(url) 
+        //alert('forcePlay called');
+        var userId = $('#userId').val();
+        var userLat = $('#userLat').val();
+        var userLon = $('#userLon').val();
+        var pageCount = $('#pageCount').val();
+        //alert('userLat = '+userLat+ ' userLon = '+ userLon )
+        socket.emit('force play',userId,userLat,userLon,pageCount);
+      });
+
+       // Play - start
+       $('#PlayGame').click(function(){ 
+        
+        var userId = $('#selectUserlist').val();
+        var userLat = $('#pUserLat').val();
+        var userLon = $('#pUserLon').val();
+        var pageCount = '0';//$('#pageCount').val();
+        if(userId == null || userLat==null || userLon == null || userId ==  "" || userLat== "" || userLon == "")
+        {
+          alert('Required fields are empty.');
+        }
+        else
+        {
+          socket.username = userId;
+          socket.emit('Play',socket.username,userLat,userLon,'0');
+        }
+        //socket.username = '1395888427404363';//'1404004156590579';//
+        //socket.emit('Play',socket.username,'31.484','74.389','0');
+        
+       });//Play - end
+
+       //Start - APNS response
+       $('#apnsResponse').click(function(){ 
+        
+        var respondBy = $('#selectUserlistAPNS').val();
+        var respondTo = $('#respondToAPNS').val();
+        var userLat = $('#userLatAPNS').val();
+        var userLon = $('#userLonAPNS').val();
+        if(respondBy == null || respondTo == null || userLat==null || userLon == null || respondBy == "" || respondTo == "" || userLat=="" || userLon == "")
+        {
+          alert('APNS required fields are empty.');
+        }
+        else
+        {
+          socket.username = respondBy;
+          //alert('APNS - respond by : '+respondBy);
+          socket.emit('APNS Response',socket.username,respondTo,userLat,userLon);
+        }
+        
+       });//End - APNS response
+
+       $('#inAppNotificationConnectSocket').click(function () {
+
+           socket.username = $('#user-fb-Id').val();
+           socket.emit('connect with socket', socket.username);
+           alert('socket.username = ' + socket.username + ' connected with socket');
+       });
+
+        // Login click  - 17 Oct 2015
+       $('#login').click(function () {
+           var fb_id = $('#user_fb_id_login').val();
+           socket.emit('login-temp', fb_id);
+       });
+       $('#logouttemp').click(function () {
+           var fb_id = $('#user_fb_id_login').val();
+           socket.emit('logout-temp', fb_id);
+       });
+
+       $("#selectUserlist").change(function () {
+           var userId = $("#selectUserlist").val();
+           //alert("change event occured with value: " + document.getElementById("sel_change").value);
+           $('#user_fb_id_login').val(userId);
+           $('#user-fb-Id').val(userId)
+       });
+
+    });
+    //End
+
+</script>
+<h1> Room Chat User 2</h1> <p/>
+
+<!-- TODO anas start -->
+<div style="float:left;margin:50px;width:99%;height:250px;overflow:scrol-y;padding:10px;">
+<ul id="messages"></ul>
+    <br />
+  <h2>Play:</h2><br />
+  <select id="selectUserlist"></select>
+  <input id="pUserLat" style="width:200px;" value="" placeholder="Latitude e.g 74.389"/>
+  <input id="pUserLon" style="width:200px;" value="" placeholder="Longitude e.g 31.484"/>
+  <input id="pPageCount" style="width:200px;" value="0" placeholder="Pagination count" readonly="True"/>
+  <a id="PlayGame"><button>Play</button> </a> 
+
+    <br /><br />
+    <h2>Login:</h2><br />
+    <input id="user_fb_id_login" style="width:200px;" />
+    <input type="button" id="login" value="Login" />
+    <input type="button" id="logouttemp" value="Logout" />
+    <br /><br />
+    <h2>Connect user socket :</h2> 
+    <br />
+      <input id="user-fb-Id" style="width:200px;" value="" placeholder="Facebook ID"/>
+      <a id="inAppNotificationConnectSocket"><button>Connect to socket</button> </a>
+    <br />
+
+  <br/><br/>
+  <h2>Force Play:</h2><br />
+  <input id="userId" style="width:200px;" value="" placeholder="User ID" readonly="True"/>
+  <input id="userLat" style="width:200px;" value="" placeholder="Latitude" readonly="True"/>
+  <input id="userLon" style="width:200px;" value="" placeholder="Longitude" readonly="True"/>
+  <input id="pageCount" style="width:200px;" value="" placeholder="Pagination count" readonly="True"/>
+  <a id="forcePlay"><button>Force Play</button> </a> <!--href="http://localhost:3000/Play?fb_id=1395888427404363&user_lat=31.484&user_lon=74.389&page=0"  --> 
+  <br/><br/>
+  <h2>APNS Response:</h2><br />
+  <select id="selectUserlistAPNS"></select>
+  <input id="respondToAPNS" style="width:200px;" value="" placeholder="Respond to" />
+  <input id="userLatAPNS" style="width:200px;" value="" placeholder="Latitude" />
+  <input id="userLonAPNS" style="width:200px;" value="" placeholder="Longitude" />
+  <a id="apnsResponse"><button>Respond</button> </a>
+
+  
+    <br /><br /><br />
+    <ul id="offline_users"></ul>
+    <br/>
+</div>
+<!-- TODO anas End -->
+
+<div id="chatDiv" style="float:left;margin:50px;width:99%;height:500px;overflow:scrol-y;padding:10px;">
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <b>ROOMS</b>
+    <div id="rooms"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+    <div id="conversation"></div>
+    <input id="data" style="width:200px;" />
+    <input type="button" id="datasend" value="send" />
+</div>
+<input type="button" id="loggedout" value="sign out" />
+<input type="button" id="skip" value="skip" />
+</div>
+
